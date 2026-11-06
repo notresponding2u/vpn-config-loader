@@ -2,10 +2,7 @@ module github.com/notresponding2u/vpn-config-loader
 
 go 1.27.3
 
-require (
-	github.com/gin-gonic/gin v1.12.0
-	golang.org/x/tools v0.41.0
-)
+require github.com/gin-gonic/gin v1.12.0
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect

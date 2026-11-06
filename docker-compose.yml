@@ -10,18 +10,18 @@ services:
       - /dev/net/tun
     restart: unless-stopped
     volumes:
-      - ${DIR_MEDIA_STACK}/vpn:/vpn
+      - /vpn:/vpn
     environment:
       - TZ=${VPN_TZ}
+      - VPN_CONFIG_FILE=${VPN_CONFIG_FILE}
+      - VPN_CONFIG_FILE_DIR=${VPN_CONFIG_FILE_DIR}
+      - VPN_CONFIG_FILES_DIR=${VPN_CONFIG_FILES_DIR}
+    ports:
+      - :8080:8080
     command: >
       -f ""
       -r 192.168.0.0/16
       -r 172.16.0.0/12
-    ports:
-      - ${PORT_QBITTORRENT}:${PORT_QBITTORRENT}
-      - ${PORT_PROWLARR}:${PORT_PROWLARR}
-      - ${PORT_SEARINGXNG}:${PORT_SEARINGXNG}
-#      - 127.0.0.1:${PORT_FLARESOLVER}:${PORT_FLARESOLVER}
     networks:
       - torrent-net
     deploy:

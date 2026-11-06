@@ -13,13 +13,6 @@ import (
 	"github.com/notresponding2u/vpn-config-loader/loader"
 )
 
-const (
-	// Load these wiht env.
-	OpenVPNCommand    = "openvpn"
-	OpenVPNAttribute  = "--config"
-	OpenVPNConfigFile = "/app/client.ovpn"
-)
-
 func main() {
 	conf, err := config.New()
 	if err != nil {
@@ -27,7 +20,7 @@ func main() {
 	}
 
 	if err := launchOpenVPN(conf); err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("can't launch openvpn: %s", err.Error())
 		os.Exit(1)
 	}
 
@@ -46,8 +39,9 @@ func main() {
 }
 
 func launchOpenVPN(conf *config.Config) error {
-	if _, err := os.Stat(OpenVPNConfigFile); errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("file does not exist: %s", OpenVPNConfigFile)
+	fullPath := fmt.Sprintf("%s/%s", conf.OpenVPNConfigFileDir, conf.OpenVPNConfigFile)
+	if _, err := os.Stat(fullPath); errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("file does not exist: %s", fullPath)
 	}
 
 	cmd := exec.Command(conf.OpenVPNCommand, conf.OpenVPNAttribute, conf.OpenVPNConfigFile)
