@@ -1,6 +1,6 @@
-./.env
-./srv
-./auth.txt
-./conf.d/*
-./conf/*
-./server/vpn-config-loader
+/.env
+/srv
+/auth.txt
+/conf.d/*
+/conf/*
+/server/vpn-config-loader

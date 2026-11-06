@@ -1,0 +1,39 @@
+name: vpnloader
+services:
+  vpnloader:
+    build:
+      #context: loader
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun
+    restart: unless-stopped
+    volumes:
+      - ${DIR_MEDIA_STACK}/vpn:/vpn
+    environment:
+      - TZ=${VPN_TZ}
+    command: >
+      -f ""
+      -r 192.168.0.0/16
+      -r 172.16.0.0/12
+    ports:
+      - ${PORT_QBITTORRENT}:${PORT_QBITTORRENT}
+      - ${PORT_PROWLARR}:${PORT_PROWLARR}
+      - ${PORT_SEARINGXNG}:${PORT_SEARINGXNG}
+#      - 127.0.0.1:${PORT_FLARESOLVER}:${PORT_FLARESOLVER}
+    networks:
+      - torrent-net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 128M
+
+networks:
+  torrent-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
