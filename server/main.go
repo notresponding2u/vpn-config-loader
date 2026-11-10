@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/notresponding2u/vpn-config-loader/config"
 	"github.com/notresponding2u/vpn-config-loader/loader"
+	"github.com/notresponding2u/vpn-config-loader/server"
 )
 
 func main() {
@@ -32,8 +33,10 @@ func main() {
 
 	l := loader.NewLoader(conf)
 
-	l.ListConfigs("/configs", router)
-	l.LoadConfig("/load", router)
+	s := server.NewServer(conf, l)
+
+	s.ListConfigs("/configs", router)
+	s.LoadConfig("/load", router)
 
 	router.Run(":8080")
 }

@@ -7,8 +7,6 @@ COPY ./server /app/server
 
 RUN cd /app/server && go build -o /app/srv ./ 
 
-VOLUME ["/app/conf.d", "/vpn"]
-
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
@@ -22,9 +20,11 @@ RUN apt-get update && \
 
 
 # OpenVPN configuration directory
-RUN mkdir -p /etc/openvpn /app
+RUN mkdir -p /etc/openvpn /app/conf
 
-COPY ./conf/client.ovpn /app/client.ovpn
+VOLUME ["/app/conf.d", "/vpn"]
+
+COPY ./conf/config.ovpn /app/conf
 
 COPY ./auth.txt /app
 

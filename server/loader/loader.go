@@ -2,80 +2,45 @@ package loader
 
 import (
 	"fmt"
-	"net/http"
-	"os"
 	"os/exec"
+	"syscall"
 
-	"github.com/gin-gonic/gin"
 	"github.com/notresponding2u/vpn-config-loader/config"
 )
 
-type loader struct {
-	Conf *config.Config
+type Loader struct {
+	cmd *exec.Cmd
 }
 
-func NewLoader(conf *config.Config) *loader {
-	return &loader{
-		Conf: conf,
+func NewLoader(conf *config.Config) *Loader {
+	return &Loader{
+		cmd: exec.Command(
+			conf.OpenVPNCommand,
+			conf.OpenVPNAttribute,
+			conf.OpenVPNConfigFile,
+		),
 	}
 }
 
-func (l *loader) ListConfigs(endpoint string, engine *gin.Engine) {
-	engine.GET(endpoint, func(c *gin.Context) {
-		r, err := os.ReadDir(l.Conf.OpenVPNConfigFilesDir)
-		if err != nil {
-			fmt.Printf("can't read directory: %s", err.Error())
-			c.Status(http.StatusBadRequest)
+func (l *Loader) StartVpn() error {
+	go func() {
+		if err := l.cmd.Run(); err != nil {
+			fmt.Println("can't start openvpn: %s", err.Error())
 		}
 
-		res := []string{}
+	}()
 
-		for i := range r {
-			res = append(res, r[i].Name())
-		}
-
-		c.JSON(http.StatusOK, res)
-	})
+	return nil
 }
 
-func (l *loader) LoadConfig(endpoint string, engine *gin.Engine) {
-	engine.POST(endpoint, func(c *gin.Context) {
-		conf := c.PostForm("config")
+func (l *Loader) RestartVpn() error {
+	if err := l.cmd.Process.Signal(syscall.SIGINT); err != nil {
+		return fmt.Errorf("interupt signal eror: %s", err.Error())
+	}
 
-		file := fmt.Sprintf("%s/%s", l.Conf.OpenVPNConfigFilesDir, conf)
-		dat, err := os.ReadFile(file)
-		if err != nil {
-			c.String(http.StatusNotFound, "config not found")
-
-			fmt.Printf("can't load file: %s\n%s\n", file, err.Error())
-			return
-		}
-
-		_, err = os.Stat(l.Conf.OpenVPNConfigFileDir)
-
-		if os.IsNotExist(err) {
-			os.Mkdir(l.Conf.OpenVPNConfigFileDir, 0777)
-		}
-
-		err = os.WriteFile(
-			fmt.Sprintf("%s/%s", l.Conf.OpenVPNConfigFileDir, l.Conf.OpenVPNConfigFile),
-			fmt.Appendf(dat, "\n\n%s", l.Conf.OpenVPNConfigAuthFileAddition),
-			0644,
-		)
-
-		if err != nil {
-			fmt.Printf("error writing to the file: %s\n", err.Error())
-			c.String(http.StatusBadRequest, err.Error())
-
-			return
-		}
-
-		c.Status(http.StatusCreated)
-	})
-}
-
-func (l *loader)reloadOpenVPN()error{
-//	cmd, err:= exec.Command("")
+	if err := l.StartVpn(); err != nil {
+		return fmt.Errorf("can't restart vpn: %s", err.Error())
+	}
 
 	return nil
 }

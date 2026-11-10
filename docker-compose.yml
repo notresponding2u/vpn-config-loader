@@ -10,7 +10,7 @@ services:
       - /dev/net/tun
     restart: unless-stopped
     volumes:
-      - /vpn:/vpn
+      - ./conf.d:/app/conf.d
     environment:
       - TZ=${VPN_TZ}
       - VPN_CONFIG_FILE=${VPN_CONFIG_FILE}
