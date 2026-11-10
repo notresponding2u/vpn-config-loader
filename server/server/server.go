@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/notresponding2u/vpn-config-loader/loader"
-	"github.com/notresponding2u/vpn-config-server/config"
+	"github.com/notresponding2u/vpn-config-loader/server/loader"
+	"github.com/notresponding2u/vpn-config-loader/server/config"
 )
 
 type server struct {

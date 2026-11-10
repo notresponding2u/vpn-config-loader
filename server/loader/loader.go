@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/notresponding2u/vpn-config-loader/config"
+	"github.com/notresponding2u/vpn-config-loader/server/config"
 )
 
 type Loader struct {

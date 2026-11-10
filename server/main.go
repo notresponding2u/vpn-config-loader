@@ -9,9 +9,9 @@ import (
 	"os/exec"
 
 	"github.com/gin-gonic/gin"
-	"github.com/notresponding2u/vpn-config-loader/config"
-	"github.com/notresponding2u/vpn-config-loader/loader"
-	"github.com/notresponding2u/vpn-config-loader/server"
+	"github.com/notresponding2u/vpn-config-loader/server/config"
+	"github.com/notresponding2u/vpn-config-loader/server/loader"
+	"github.com/notresponding2u/vpn-config-loader/server/server"
 )
 
 func main() {

@@ -1,8 +1,14 @@
-module github.com/notresponding2u/vpn-config-loader
+module github.com/notresponding2u/vpn-config-loader/server
 
 go 1.27.3
 
 require github.com/gin-gonic/gin v1.12.0
+
+replace (
+	github.com/notresponding2u/vpn-config-server/server/config => ./config
+	github.com/notresponding2u/vpn-config-server/server/loader => ./loader
+	github.com/notresponding2u/vpn-config-server/server/server => ./server
+)
 
 require (
 	github.com/bytedance/gopkg v0.1.3 // indirect
