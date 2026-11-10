@@ -56,7 +56,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 		_, err = os.Stat(s.Conf.OpenVPNConfigFileDir)
 
 		if os.IsNotExist(err) {
-			os.Mkdir(s.Conf.OpenVPNConfigFileDir, 0777)
+			os.Mkdir(s.Conf.OpenVPNConfigFileDir, 0600)
 		}
 
 		err = os.WriteFile(
@@ -72,9 +72,13 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 			return
 		}
 
+		fmt.Printf("file loaded: %s/%s\n",s.Conf.OpenVPNConfigFileDir,s.Conf.OpenVPNConfigFile)
+
 		if err = s.loader.RestartVpn(); err != nil {
 			c.String(http.StatusInternalServerError, "can't load config")
 			fmt.Printf("can't load config :%s", err.Error())
+
+			return
 		}
 
 		c.Status(http.StatusCreated)
