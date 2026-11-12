@@ -6,19 +6,33 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 
+	"github.com/NordSecurity/gopenvpn/openvpn"
 	"github.com/notresponding2u/vpn-config-loader/server/config"
 )
 
 type Loader struct {
-	conf *config.Config
-	cmd  *exec.Cmd
+	conf             *config.Config
+	managementClient *openvpn.MgmtClient
+	events           chan openvpn.Event
 }
 
-func NewLoader(conf *config.Config) *Loader {
-	return &Loader{
-		conf: conf,
+func NewLoader(conf *config.Config) (*Loader, error) {
+	client, events, err := connectManagement(fmt.Sprintf("%s:%s", conf.OpenVPNAttributeManagementIP, conf.OpenVPNAttributeManagementPort))
+	if err != nil {
+		return nil,  fmt.Errorf("can't open management connectin: s%", err.Error())
 	}
+
+	return &Loader{
+		conf:             conf,
+		managementClient: client,
+		events:           events,
+	}, nil
+}
+
+func (l *Loader) CloseManagementConnection() {
+	l.managementClient.Close()
 }
 
 func (l *Loader) StartVpn() error {
@@ -27,18 +41,25 @@ func (l *Loader) StartVpn() error {
 		return fmt.Errorf("file does not exist: %s", fullPath)
 	}
 
-	l.cmd = exec.Command(
+	cmd := exec.Command(
 		l.conf.OpenVPNCommand,
-		l.conf.OpenVPNAttribute,
+		l.conf.OpenVPNAttributeConfig,
 		fullPath,
+		l.conf.OpenVPNAttributeManagement,
+		l.conf.OpenVPNAttributeManagementIP,
+		l.conf.OpenVPNAttributeManagementPort,
 	)
 
-	stdout, _ := l.cmd.StdoutPipe()
-	stderr, _ := l.cmd.StderrPipe()
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
 
-	if err := l.cmd.Start(); err != nil {
+	fmt.Println("starting OpenVPN process...")
+
+	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("command execution error: %s", err.Error())
 	}
+
+	fmt.Println("OpenVPN launched")
 
 	go func() {
 		scanner := bufio.NewScanner(stdout)
@@ -69,15 +90,46 @@ func (l *Loader) StartVpn() error {
 }
 
 func (l *Loader) RestartVpn() error {
-	if err := l.cmd.Process.Kill(); err != nil {
-		return fmt.Errorf("interupt signal eror: %s", err.Error())
+	if err := l.managementClient.SetStateEvents(true); err != nil {
+		return fmt.Errorf("enabling state events: %w", err)
 	}
 
-	l.cmd.Wait()
+	fmt.Println("listening to incomming events initiating")
 
-	if err := l.StartVpn(); err != nil {
-		return fmt.Errorf("can't restart vpn: %s", err.Error())
+	go func() {
+		for event := range l.events {
+			fmt.Printf("OpenVPN event: %v\n", event)
+		}
+		fmt.Println("event channel closed")
+	}()
+
+	done := make(chan error, 1)
+
+	go func() {
+		done <- l.managementClient.SendSignal("SIGHUP")
+	}()
+
+	fmt.Println("sending restart signal")
+	select {
+	case err := <-done:
+		fmt.Printf("SendSignal completed: %v\n", err)
+
+	case <-time.After(10 * time.Second):
+		fmt.Println("SendSignal is still blocked after 10 seconds")
 	}
+
+	fmt.Println("restart signal sent")
 
 	return nil
+}
+
+func connectManagement(addr string) (*openvpn.MgmtClient, chan openvpn.Event, error) {
+	events := make(chan openvpn.Event, 100)
+
+	client, err := openvpn.Dial(addr, events)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return client, events, nil
 }

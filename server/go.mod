@@ -11,6 +11,7 @@ replace (
 )
 
 require (
+	github.com/NordSecurity/gopenvpn v0.0.0-20230117114932-2252c52984b4 // indirect
 	github.com/bytedance/gopkg v0.1.3 // indirect
 	github.com/bytedance/sonic v1.15.0 // indirect
 	github.com/bytedance/sonic/loader v0.5.0 // indirect

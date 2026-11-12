@@ -6,19 +6,19 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
-	"github.com/notresponding2u/vpn-config-loader/server/loader"
 	"github.com/notresponding2u/vpn-config-loader/server/config"
+	"github.com/notresponding2u/vpn-config-loader/server/supervisor"
 )
 
 type server struct {
-	Conf *config.Config
-	loader *loader.Loader
+	Conf       *config.Config
+	supervisor *supervisor.Supervisor
 }
 
-func NewServer(conf *config.Config,loader *loader.Loader) *server {
+func NewServer(conf *config.Config, superV *supervisor.Supervisor) *server {
 	return &server{
-		Conf: conf,
-		loader: loader,
+		Conf:       conf,
+		supervisor: superV,
 	}
 }
 
@@ -72,9 +72,9 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 			return
 		}
 
-		fmt.Printf("file loaded: %s/%s\n",s.Conf.OpenVPNConfigFileDir,s.Conf.OpenVPNConfigFile)
+		fmt.Printf("file loaded: %s/%s\n", s.Conf.OpenVPNConfigFileDir, s.Conf.OpenVPNConfigFile)
 
-		if err = s.loader.RestartVpn(); err != nil {
+		if err = s.supervisor.Restart(); err != nil {
 			c.String(http.StatusInternalServerError, "can't load config")
 			fmt.Printf("can't load config :%s", err.Error())
 

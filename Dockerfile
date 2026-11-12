@@ -14,6 +14,8 @@ RUN apt-get update && \
         openvpn \
         iproute2 \
         iptables \
+# remove curl when ready
+        curl \
         ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
