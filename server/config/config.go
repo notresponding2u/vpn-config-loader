@@ -45,7 +45,7 @@ func New() (*Config, error) {
 
 	logLevelEnv := os.Getenv("LOG_LEVEL")
 	if logLevelEnv == "" {
-		c.LogLevel = slog.LevelInfo
+		c.LogLevel = slog.LevelError
 	} else {
 
 		logLevelMap := map[string]slog.Level{

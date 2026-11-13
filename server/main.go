@@ -27,7 +27,7 @@ func main() {
 	vpnManager := manager.New(conf, logger)
 
 	if err := vpnManager.StartVpn(); err != nil {
-		logger.Error("can't launch openvpn","err", err.Error())
+		logger.Error("can't launch openvpn", "err", err.Error())
 		os.Exit(1)
 	}
 
