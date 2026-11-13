@@ -7,6 +7,11 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 )
 
+replace (
+	github.com/notresponding2u/vpn-config-server/server/config => ./config
+	github.com/notresponding2u/vpn-config-server/server/manager => ./manager
+)
+
 require (
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.2 // indirect
