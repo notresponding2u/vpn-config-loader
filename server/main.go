@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"log/slog"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -18,20 +18,20 @@ func main() {
 		os.Exit(1)
 	}
 
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: conf.LogLevel,
+	}))
+
 	router := gin.Default()
 
-	router.GET("/ping", func(c *gin.Context) {
-		c.String(http.StatusOK, "pong")
-	})
-
-	vpnManager := manager.New(conf)
+	vpnManager := manager.New(conf, logger)
 
 	if err := vpnManager.StartVpn(); err != nil {
-		fmt.Printf("can't launch openvpn: %s\n", err.Error())
+		logger.Error("can't launch openvpn","err", err.Error())
 		os.Exit(1)
 	}
 
-	s := server.NewServer(conf, vpnManager)
+	s := server.NewServer(conf, logger, vpnManager)
 
 	s.ListConfigs("/configs", router)
 	s.LoadConfig("/load", router)

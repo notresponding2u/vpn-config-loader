@@ -21,6 +21,7 @@ func NewServer(conf *config.Config, logger *slog.Logger, vpnManager *manager.Man
 	return &server{
 		Conf:       conf,
 		vpnManager: vpnManager,
+		logger: logger,
 	}
 }
 
