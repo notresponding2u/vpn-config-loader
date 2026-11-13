@@ -30,6 +30,8 @@ COPY ./conf/config.ovpn /app/conf
 
 COPY ./auth.txt /app
 
+COPY ./web /app/web
+
 COPY --from=builder /app/srv /app/srv
 
 WORKDIR /app

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            OpenVPN config loader
+        </title>
+    </head>
+    <body>
+        <p id="status">Loading configurations...</p>
+
+        <ul id="configList"></ul>
+        <script module>
+            const BASE_URL = window.location.origin;;
+
+            async function getConfigs(options = {}) {  
+                const url = new URL(`${BASE_URL}/configs`);
+                const fetchOptions = {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json",
+                        ...(options.headers || {})
+                    },
+                    ...options
+                };
+
+                const res = await fetch(url.toString(), fetchOptions);
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+                }
+                const contentType = res.headers.get("content-type") || "";
+
+                if (contentType.includes("application/json")) {
+
+                    return res.json();
+                }
+
+            return res.text();
+            }
+
+            async function loadConfig(body, options = {}) {
+                const url = new URL(`${BASE_URL}/load`);
+                const fetchOptions = {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/x-www-form-urlencoded",
+                      ...(options.headers || {})
+                    },
+                    body: "config="+body,
+                    ...options
+                }
+                const res = await fetch(url.toString(), fetchOptions);
+
+                if (!res.ok) {
+                    const text = await res.text();
+                        throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+                }
+                const contentType = res.headers.get("content-type") || "";
+                return res.text();
+            }
+
+            async function loadConfigs() {
+                const list = document.getElementById("configList");
+                const status = document.getElementById("status");
+
+                try {
+                    const configs = await getConfigs();
+
+                    list.innerHTML = "";
+
+                    // Handle either an array or an object containing configs
+                    const items = Array.isArray(configs)
+                        ? configs
+                        : configs.configs || [];
+
+                    if (!items.length) {
+                        status.textContent = "No configurations found.";
+                        return;
+                    }
+
+                    items.forEach((config, index) => {
+                        const li = document.createElement("li");
+                        
+                        const button = document.createElement("button")
+                        button.textContent = "Load"
+                        button.onclick = function(){
+                            loadConfig(config)
+                            document.getElementById("status").textContent=config+" loaded"
+                        }
+
+                        const div = document.createElement("div")
+                        
+                        div.textContent = config
+                        div.appendChild(button)
+
+                        li.appendChild(div);
+
+                        list.appendChild(li);
+                    });
+
+                    status.textContent = `${items.length} configurations loaded.`;
+
+                } catch (error) {
+                    status.textContent = error.message;
+                    status.className = "error";
+                    console.error("Error loading configs:", error);
+                }
+            }
+
+            // Load configurations on page load
+            loadConfigs();
+        </script>
+    </body>
+</html>

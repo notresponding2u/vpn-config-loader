@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,10 @@ func main() {
 	}))
 
 	router := gin.Default()
+	router.LoadHTMLGlob("/app/web/*")
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "index.html", gin.H{})
+	})
 
 	vpnManager := manager.New(conf, logger)
 

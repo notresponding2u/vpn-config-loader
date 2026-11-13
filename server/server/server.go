@@ -70,7 +70,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 
 		if err != nil {
 			s.logger.Error("error writing to the file", "err", err.Error())
-			c.String(http.StatusBadRequest, err.Error())
+			c.String(http.StatusInternalServerError, err.Error())
 
 			return
 		}
@@ -78,8 +78,8 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 		s.logger.Debug("file loaded", "dir", s.Conf.OpenVPNConfigFileDir, "file", s.Conf.OpenVPNConfigFile)
 
 		if err = s.vpnManager.RestartVpn(); err != nil {
-			c.String(http.StatusInternalServerError, "can't load config")
 			s.logger.Error("can't load config", "err", err.Error())
+			c.String(http.StatusInternalServerError, "can't load config")
 
 			return
 		}
