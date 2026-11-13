@@ -2,23 +2,25 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/notresponding2u/vpn-config-loader/server/config"
-	"github.com/notresponding2u/vpn-config-loader/server/supervisor"
+	"github.com/notresponding2u/vpn-config-loader/server/manager"
 )
 
 type server struct {
 	Conf       *config.Config
-	supervisor *supervisor.Supervisor
+	vpnManager *manager.Manager
+	logger     *slog.Logger
 }
 
-func NewServer(conf *config.Config, superV *supervisor.Supervisor) *server {
+func NewServer(conf *config.Config, logger *slog.Logger, vpnManager *manager.Manager) *server {
 	return &server{
 		Conf:       conf,
-		supervisor: superV,
+		vpnManager: vpnManager,
 	}
 }
 
@@ -26,7 +28,7 @@ func (s *server) ListConfigs(endpoint string, engine *gin.Engine) {
 	engine.GET(endpoint, func(c *gin.Context) {
 		r, err := os.ReadDir(s.Conf.OpenVPNConfigFilesDir)
 		if err != nil {
-			fmt.Printf("can't read directory: %s", err.Error())
+			s.logger.Error("can't read directory", "err", err.Error())
 			c.Status(http.StatusBadRequest)
 		}
 
@@ -49,7 +51,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 		if err != nil {
 			c.String(http.StatusNotFound, "config not found")
 
-			fmt.Printf("can't load file: %s\n%s\n", file, err.Error())
+			s.logger.Error("can't load file", "file", file, "err", err.Error())
 			return
 		}
 
@@ -66,17 +68,17 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 		)
 
 		if err != nil {
-			fmt.Printf("error writing to the file: %s\n", err.Error())
+			s.logger.Error("error writing to the file", "err", err.Error())
 			c.String(http.StatusBadRequest, err.Error())
 
 			return
 		}
 
-		fmt.Printf("file loaded: %s/%s\n", s.Conf.OpenVPNConfigFileDir, s.Conf.OpenVPNConfigFile)
+		s.logger.Debug("file loaded", "dir", s.Conf.OpenVPNConfigFileDir, "file", s.Conf.OpenVPNConfigFile)
 
-		if err = s.supervisor.Restart(); err != nil {
+		if err = s.vpnManager.RestartVpn(); err != nil {
 			c.String(http.StatusInternalServerError, "can't load config")
-			fmt.Printf("can't load config :%s", err.Error())
+			s.logger.Error("can't load config", "err", err.Error())
 
 			return
 		}

@@ -6,10 +6,6 @@ import (
 )
 
 type Config struct {
-	OpenVPNCommand                   string
-	OpenVPNAttributeConfig           string
-	OpenVPNAttributeManagementClient string
-	OpenVPNAttributeManagement       string
 	OpenVPNAttributeManagementIP     string
 	OpenVPNAttributeManagementPort   string
 	OpenVPNConfigFile                string
@@ -20,11 +16,8 @@ type Config struct {
 
 func New() (*Config, error) {
 	c := &Config{
-		OpenVPNCommand:                   "openvpn",
-		OpenVPNAttributeConfig:           "--config",
-		OpenVPNAttributeManagementClient: "--management-client",
-		OpenVPNAttributeManagement:       "--management",
 		OpenVPNAttributeManagementIP:     "127.0.0.1",
+		// For now hard coded.
 		OpenVPNConfigAuthFileAddition:    "auth-user-pass ./auth.txt",
 	}
 

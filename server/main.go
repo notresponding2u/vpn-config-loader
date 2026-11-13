@@ -7,8 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/notresponding2u/vpn-config-loader/server/config"
+	"github.com/notresponding2u/vpn-config-loader/server/manager"
 	"github.com/notresponding2u/vpn-config-loader/server/server"
-	"github.com/notresponding2u/vpn-config-loader/server/supervisor"
 )
 
 func main() {
@@ -24,14 +24,14 @@ func main() {
 		c.String(http.StatusOK, "pong")
 	})
 
-	vpnSupervisor := supervisor.New(conf)
+	vpnManager := manager.New(conf)
 
-	if err := vpnSupervisor.Run(); err != nil {
+	if err := vpnManager.StartVpn(); err != nil {
 		fmt.Printf("can't launch openvpn: %s\n", err.Error())
 		os.Exit(1)
 	}
 
-	s := server.NewServer(conf, vpnSupervisor)
+	s := server.NewServer(conf, vpnManager)
 
 	s.ListConfigs("/configs", router)
 	s.LoadConfig("/load", router)
