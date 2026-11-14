@@ -1,0 +1,76 @@
+{
+    "openapi":"3.0.0",
+
+    "info":{
+        "title":"OpenVPN config loader",
+        "version":"0.0.1"
+    },
+
+    "paths":{
+        "/configs":{
+            "get":{
+                "summary":"Lists available config files.",
+                "responses":{
+                    "200":{
+                        "description":"200 responses",
+                        "content":{
+                            "application/json":{
+                                "examples":{
+                                    "example list":{
+                                        "value":[
+                                            "config1.ovpn",
+                                            "config2.ovpn"
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/load":{
+            "post":{
+                "summary": "Loads selected config.",
+                "requestBody":{
+                    "required":true,
+                    "parameters":{
+                        "name":"config",
+                        "required":true,
+                        "schema":{
+                            "type":"string"
+                        },
+                        "example":"config1.ovpn"
+                    }
+                },
+                "responses":{
+                    "201":{
+                        "description":"Config file is successfuly loaded."
+                    },
+                    "404":{
+                        "description": "Resource not found",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "config not found"
+                                }
+                            }
+                        }
+                    },
+                    "400":{
+                        "description": "Error durring loading the file or restartin the vpn.",
+                        "content": {
+                            "text/plain": {
+                                "schema": {
+                                    "type": "string",
+                                    "example": "returned error message"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

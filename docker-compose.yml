@@ -1,0 +1,70 @@
+name: vpnloader
+services:
+  vpnloader:
+    build:
+      dockerfile: ./Dockerfile
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    restart: unless-stopped
+    volumes:
+      - ./conf.d:/app/conf.d
+      - ./auth.txt:/vpn/auth.txt:ro
+    environment:
+      TZ: ${VPN_TZ}
+      VPN_CONFIG_FILE: ${VPN_CONFIG_FILE}
+      VPN_CONFIG_FILE_DIR: ${VPN_CONFIG_FILE_DIR}
+      VPN_CONFIG_FILES_DIR: ${VPN_CONFIG_FILES_DIR}
+      VPN_CONFIG_MANAGEMENT_PORT: ${VPN_CONFIG_MANAGEMENT_PORT}
+      VPN_CONFIG_AUTH_FILE: ${VPN_CONFIG_AUTH_FILE}
+      LOG_LEVEL: ${LOG_LEVEL}
+
+      # LAN networks allowed for established replies
+      LAN_CIDRS: "192.168.0.0/16 172.16.0.0/12"
+
+      # Docker network
+      DOCKER_SUBNET: "172.30.0.0/16"
+
+      # All LAN-accessible application ports
+      LAN_PORTS: "8080,8181"
+    ports:
+      - 8080:8080
+      - 8181:8181
+    networks:
+      - vpn-net
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "test", "-f", "/run/vpnloader-firewall-ready"]
+      interval: 3s
+      timeout: 2s
+      retries: 10
+      start_period: 5s
+
+  services:
+  wait:
+    image: alpine:latest
+    command: ["sleep", "infinity"]
+
+    depends_on:
+      vpnloader:
+        condition: service_healthy
+    network_mode: "service:vpnloader"
+    deploy:
+      resources:
+        limits:
+          memory: 32M
+        reservations:
+          memory: 32M
+
+networks:
+  vpn-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
