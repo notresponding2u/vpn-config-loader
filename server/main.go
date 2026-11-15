@@ -31,15 +31,11 @@ func main() {
 
 	vpnManager := manager.New(conf, logger)
 
-//	if err := vpnManager.StartVpn(); err != nil {
-//		logger.Error("can't launch openvpn", "err", err.Error())
-//		os.Exit(1)
-//	}
-//
 	s := server.NewServer(conf, logger, vpnManager)
 
 	s.ListConfigs("/configs", router)
 	s.LoadConfig("/load", router)
+	s.GetStatus("/status", router)
 
 	router.Run(":8080")
 }
