@@ -46,7 +46,6 @@ services:
       retries: 10
       start_period: 5s
 
-  services:
   wait:
     image: alpine:latest
     command: ["sleep", "infinity"]

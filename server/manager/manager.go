@@ -1,12 +1,9 @@
 package manager
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"os/exec"
 	"time"
 
 	"github.com/NordSecurity/gopenvpn/openvpn"
@@ -14,56 +11,57 @@ import (
 )
 
 type Manager struct {
-	conf   *config.Config
-	logger *slog.Logger
+	conf           *config.Config
+	logger         *slog.Logger
+	managerAddress string
 }
 
 func New(conf *config.Config, logger *slog.Logger) *Manager {
 	return &Manager{
-		conf:   conf,
-		logger: logger,
+		conf:           conf,
+		logger:         logger,
+		managerAddress: fmt.Sprintf("%s:%s", conf.OpenVPNAttributeManagementIP, conf.OpenVPNAttributeManagementPort),
 	}
-}
-
-func (m *Manager) StartVpn() error {
-	fullPath := fmt.Sprintf("%s/%s", m.conf.OpenVPNConfigFileDir, m.conf.OpenVPNConfigFile)
-	if _, err := os.Stat(fullPath); errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("file does not exist: %s", fullPath)
-	}
-
-	cmd := exec.Command(
-		"openvpn",
-		"--config",
-		fullPath,
-		"--management",
-		m.conf.OpenVPNAttributeManagementIP,
-		m.conf.OpenVPNAttributeManagementPort,
-	)
-
-	m.startScanners(cmd)
-
-	m.logger.Debug("starting OpenVPN process...")
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("command execution error: %s", err.Error())
-	}
-
-	m.logger.Debug("OpenVPN launched")
-
-	return nil
 }
 
 func (m *Manager) RestartVpn() error {
-	addr := fmt.Sprintf("%s:%s", m.conf.OpenVPNAttributeManagementIP, m.conf.OpenVPNAttributeManagementPort)
-
-	client, events, err := connectManagement(addr)
+	client, err := m.connectManagement()
 	if err != nil {
 		return fmt.Errorf("can't connect to management: %s", err.Error())
 	}
 	defer client.Close()
 
+	m.logger.Debug("sending restart signal")
+
+	done := make(chan error, 1)
+
+	go func() {
+		done <- client.SendSignal("SIGHUP")
+	}()
+
+	select {
+	case err := <-done:
+		m.logger.Debug("SendSignal completed", "err", err)
+
+	case <-time.After(10 * time.Second):
+		m.logger.Debug("SendSignal is still blocked after 10 seconds")
+	}
+
+	m.logger.Debug("restart signal sent")
+
+	return nil
+}
+
+func (m *Manager) connectManagement() (*openvpn.MgmtClient, error) {
+	events := make(chan openvpn.Event, 100)
+
+	client, err := openvpn.Dial(m.managerAddress, events)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := client.SetStateEvents(true); err != nil {
-		return fmt.Errorf("enabling state events: %w", err)
+		return nil, fmt.Errorf("enabling state events: %w", err)
 	}
 
 	m.logger.Debug("listening to incomming events initiating")
@@ -75,64 +73,41 @@ func (m *Manager) RestartVpn() error {
 		m.logger.Debug("event channel closed")
 	}()
 
+	return client, nil
+}
+
+func (m *Manager) Status() (*string, error) {
+	m.logger.Debug("getting status")
+
+	client, err := m.connectManagement()
+	if err != nil {
+		return nil, fmt.Errorf("can't connect to management: %s", err)
+	}
+	defer client.Close()
+
 	done := make(chan error, 1)
 
-	m.logger.Debug("sending restart signal")
-
+	s := ""
 	go func() {
-		done <- client.SendSignal("SIGHUP")
+		// Retrieve status.
+		state, err := client.LatestState()
+		if err != nil {
+			err = fmt.Errorf("error retreiving status: %s", err.Error())
+			return
+		}
+
+		s = state.NewState()
+		done <- nil
 	}()
 
 	select {
 	case err := <-done:
-		m.logger.Debug("SendSignal completed: %v\n", err)
-
+		m.logger.Debug("getting status completed", "err", err)
 	case <-time.After(10 * time.Second):
-		m.logger.Debug("SendSignal is still blocked after 10 seconds")
+		m.logger.Debug("getting status is blocked after 10 seconds")
+		return nil, errors.New("gettint status timed out")
+
 	}
 
-	m.logger.Debug("restart signal sent")
-
-	return nil
-}
-
-func connectManagement(addr string) (*openvpn.MgmtClient, chan openvpn.Event, error) {
-	events := make(chan openvpn.Event, 100)
-
-	client, err := openvpn.Dial(addr, events)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return client, events, nil
-}
-
-func (m *Manager) startScanners(cmd *exec.Cmd) {
-	m.logger.Debug("starting scanners")
-
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
-
-	go func() {
-		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			m.logger.Debug("[OpenVPN]", "msg", scanner.Text())
-		}
-		if err := scanner.Err(); err != nil {
-			m.logger.Error("scanner error", "err", err)
-		}
-
-	}()
-
-	go func() {
-		scanner := bufio.NewScanner(stderr)
-		for scanner.Scan() {
-			m.logger.Error("[OpenVPN ERROR]", "err", scanner.Text())
-		}
-
-		if err := scanner.Err(); err != nil {
-			m.logger.Error("scanner error", "err", err)
-		}
-
-	}()
+	return &s, err
 }

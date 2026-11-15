@@ -1,41 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
-        <title>
-            OpenVPN config loader
-        </title>
+        <title>OpenVPN config loader</title>
     </head>
     <body>
         <p id="status">Loading configurations...</p>
-
+        <button onclick="toggleStatus()">Toggle status</button>
+        <div id="isStatusToggled">Not refreshing status.</div>
         <ul id="configList"></ul>
         <script module>
-            const BASE_URL = window.location.origin;;
+            const BASE_URL = window.location.origin;
 
-            async function getConfigs(options = {}) {  
+            let shouldGetStatus = false;
+
+            function toggleStatus() {
+                shouldGetStatus = !shouldGetStatus;
+
+                const isStatusToggled =
+                    document.getElementById("isStatusToggled");
+                if (shouldGetStatus) {
+                    isStatusToggled.textContent = "Refreshing status.";
+                } else {
+                    isStatusToggled.textContent = "Not refreshing status.";
+                }
+            }
+
+            async function getConfigs(options = {}) {
                 const url = new URL(`${BASE_URL}/configs`);
                 const fetchOptions = {
                     method: "GET",
                     headers: {
-                        "Accept": "application/json",
-                        ...(options.headers || {})
+                        Accept: "application/json",
+                        ...(options.headers || {}),
                     },
-                    ...options
+                    ...options,
                 };
 
                 const res = await fetch(url.toString(), fetchOptions);
                 if (!res.ok) {
                     const text = await res.text();
-                    throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+                    throw new Error(
+                        `HTTP ${res.status} ${res.statusText}: ${text}`
+                    );
                 }
                 const contentType = res.headers.get("content-type") || "";
 
                 if (contentType.includes("application/json")) {
-
                     return res.json();
                 }
 
-            return res.text();
+                return res.text();
             }
 
             async function loadConfig(body, options = {}) {
@@ -43,20 +57,60 @@
                 const fetchOptions = {
                     method: "POST",
                     headers: {
-                      "Content-Type": "application/x-www-form-urlencoded",
-                      ...(options.headers || {})
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        ...(options.headers || {}),
                     },
-                    body: "config="+body,
-                    ...options
-                }
+                    body: "config=" + body,
+                    ...options,
+                };
                 const res = await fetch(url.toString(), fetchOptions);
 
                 if (!res.ok) {
                     const text = await res.text();
-                        throw new Error(`HTTP ${res.status} ${res.statusText}: ${text}`);
+                    throw new Error(
+                        `HTTP ${res.status} ${res.statusText}: ${text}`
+                    );
                 }
                 const contentType = res.headers.get("content-type") || "";
                 return res.text();
+            }
+
+            async function getStatus(options = {}) {
+                const url = new URL(`${BASE_URL}/status`);
+                const fetchOptions = {
+                    method: "GET",
+                    headers: {
+                        Accept: "application/json",
+                        ...(options.headers || {}),
+                    },
+                    ...options,
+                };
+
+                const res = await fetch(url.toString(), fetchOptions);
+                if (!res.ok) {
+                    const text = await res.text();
+                    throw new Error(
+                        `HTTP ${res.status} ${res.statusText}: ${text}`
+                    );
+                }
+                const contentType = res.headers.get("content-type") || "";
+
+                if (contentType.includes("application/json")) {
+                    return res.json();
+                }
+
+                return res.text();
+            }
+
+            async function retrieveStatus() {
+                while (true) {
+                    if (shouldGetStatus) {
+                        const stat = await getStatus();
+                        const statusElement = document.getElementById("status");
+                        statusElement.textContent = await stat;
+                    }
+                    await new Promise((r) => setTimeout(r, 1000));
+                }
             }
 
             async function loadConfigs() {
@@ -80,18 +134,19 @@
 
                     items.forEach((config, index) => {
                         const li = document.createElement("li");
-                        
-                        const button = document.createElement("button")
-                        button.textContent = "Load"
-                        button.onclick = function(){
-                            loadConfig(config)
-                            document.getElementById("status").textContent=config+" loaded"
-                        }
 
-                        const div = document.createElement("div")
-                        
-                        div.textContent = config
-                        div.appendChild(button)
+                        const button = document.createElement("button");
+                        button.textContent = "Load";
+                        button.onclick = function () {
+                            loadConfig(config);
+                            document.getElementById("status").textContent =
+                                config + " loaded";
+                        };
+
+                        const div = document.createElement("div");
+
+                        div.textContent = config;
+                        div.appendChild(button);
 
                         li.appendChild(div);
 
@@ -99,7 +154,6 @@
                     });
 
                     status.textContent = `${items.length} configurations loaded.`;
-
                 } catch (error) {
                     status.textContent = error.message;
                     status.className = "error";
@@ -107,8 +161,13 @@
                 }
             }
 
+            // TODO: Add status indicator and function taht calls the status endpoint.
+
             // Load configurations on page load
             loadConfigs();
+
+            // Getting status constantly.
+            retrieveStatus();
         </script>
     </body>
 </html>

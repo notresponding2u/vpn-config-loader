@@ -87,3 +87,17 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 		c.Status(http.StatusCreated)
 	})
 }
+
+func (s *server) GetStatus(endpoint string, engine *gin.Engine) {
+	engine.GET(endpoint, func(c *gin.Context) {
+		s, err := s.vpnManager.Status()
+		if err != nil {
+			c.String(http.StatusInternalServerError, "can't get OpenVPN status")
+
+			return
+		}
+
+		c.String(http.StatusOK, *s)
+
+	})
+}
