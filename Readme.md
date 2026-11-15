@@ -2,7 +2,12 @@
 
 ## Description
 
-The program starts a http server, listenning to two endpoints `/config` and `/load`, and starts `openvpn` with initial config. The purpose is to have an API that can list and load preset ovpn configs instead of the default OpenVPN management interface.
+The program starts a http server, listenning to two endpoints `/config` and `/load`, and starts `openvpn` with initial config. The purpose is to have an API that can list and load preset ovpn configs instead of the default OpenVPN management interface. The loader prevents relyant services from accessing the internet, unless is through tun0.
+
+## Setup
+Put your configs in `conf.d` folder. Put your username and vpn password into `auth.txt` file into the root folder. Then copy initial config into `conf` directory, with `auth-user-pass /vpn/auth.txt` at the end - it is weird, I will improve it later.
+
+## Endpoints
 
 ### `/configs`
 
@@ -27,7 +32,8 @@ For those who can only click buttons, from those who can't be bothered with FE.
 ```
 http://<the host you are running it on>/
 ```
-Click one of the load buttons, and it loads the config you selected. If I get extremely bored, and I can't do anything else I will improve it, but first I will try to sit that thought off.
+
+Click one of the load buttons, and it loads the config you selected. The design is ai slop.
 
 ## Disclamer
 
