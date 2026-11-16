@@ -7,8 +7,7 @@ The program starts a http server, listening on the `WEB_PORT` you have set on in
 ## Setup
 
 In your `.env` file:
-- `VPN_CONFIG_FILE` - the name of the config file you have provided.
-- `VPN_CONFIG_FILE_DIR` - the directory the config file will be saved.
+- `VPN_CONFIG_FILE` - the name of the initial config file you have provided.
 - `VPN_CONFIG_USERNAME` - your VPN username.
 - `VPN_CONFIG_PASSWORD` - your VPN password.
 - `LOG_LEVEL` - the log levelyou wnat the web server to report. Valid are `DEBUG`, `ERROR`, `INFO` and `WARNING`. Equivalent to slog.

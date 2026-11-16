@@ -21,16 +21,12 @@ func New() (*Config, error) {
 		OpenVPNAttributeManagementIP:   "127.0.0.1",
 		OpenVPNAttributeManagementPort: "6061",
 		OpenVPNConfigFilesDir:          "/app/conf.d",
+		OpenVPNConfigFile:              "/vpn/conf",
 	}
 
 	c.OpenVPNConfigFile = os.Getenv("VPN_CONFIG_FILE")
 	if c.OpenVPNConfigFile == "" {
 		return nil, errors.New("VPN_CONFIG_FILE env not set")
-	}
-
-	c.OpenVPNConfigFileDir = os.Getenv("VPN_CONFIG_FILE_DIR")
-	if c.OpenVPNConfigFileDir == "" {
-		return nil, errors.New("VPN_CONFIG_FILE_DIR env not set")
 	}
 
 	c.WebPort = os.Getenv("WEB_PORT")
