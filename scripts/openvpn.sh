@@ -9,7 +9,7 @@ set -Eeuo pipefail
 
 VPN_DIR="/vpn"
 
-VPN_CONFIG="/vpn/conf/${VPN_CONFIG_FILE}"
+VPN_CONFIG="/vpn/conf/config.ovpn"
 
 [[ -n "$VPN_CONFIG_USERNAME" ]] || die "VPN username not present"
 

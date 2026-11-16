@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cp /app/conf.d/${VPN_CONFIG_FILE} /vpn/conf/config.ovpn
+
 set -eu
 
 echo "[entrypoint] Installing firewall"
