@@ -12,7 +12,6 @@ type Config struct {
 	OpenVPNConfigFile              string
 	OpenVPNConfigFilesDir          string
 	OpenVPNConfigFileDir           string
-	OpenVPNConfigAuthFile          string
 	LogLevel                       slog.Level
 }
 
@@ -40,11 +39,6 @@ func New() (*Config, error) {
 	c.OpenVPNAttributeManagementPort = os.Getenv("VPN_CONFIG_MANAGEMENT_PORT")
 	if c.OpenVPNAttributeManagementPort == "" {
 		return nil, errors.New("VPN_CONFIG_MANAGEMENT_PORT env not set")
-	}
-
-	c.OpenVPNConfigAuthFile = os.Getenv("VPN_CONFIG_AUTH_FILE")
-	if c.OpenVPNConfigAuthFile == "" {
-		return nil, errors.New("VPN_CONFIG_AUTH_FILE env not set")
 	}
 
 	logLevelEnv := os.Getenv("LOG_LEVEL")

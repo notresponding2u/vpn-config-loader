@@ -64,7 +64,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 
 		err = os.WriteFile(
 			fmt.Sprintf("%s/%s", s.Conf.OpenVPNConfigFileDir, s.Conf.OpenVPNConfigFile),
-			fmt.Appendf(dat, "\n\nauth-user-pass %s", s.Conf.OpenVPNConfigAuthFile),
+			dat,
 			0644,
 		)
 

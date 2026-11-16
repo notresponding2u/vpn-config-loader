@@ -10,7 +10,16 @@ set -Eeuo pipefail
 VPN_DIR="/vpn"
 
 VPN_CONFIG="${VPN_DIR}/config.ovpn"
-VPN_AUTH="${VPN_DIR}/auth.txt"
+
+[[ -n "$VPN_CONFIG_USERNAME" ]] || die "VPN username not present"
+
+[[ -n "$VPN_CONFIG_PASSWORD" ]] || die "VPN password not present"
+
+VPN_AUTH="$(mktemp)"
+
+chmod 600 "$VPN_AUTH"
+
+printf '%s\n' "$VPN_CONFIG_USERNAME" "$VPN_CONFIG_PASSWORD" > "$VPN_AUTH"
 
 VPN_GROUP="vpn"
 
@@ -19,7 +28,7 @@ MANAGEMENT_PORT="${VPN_CONFIG_MANAGEMENT_PORT:-6061}"
 LAN_CIDRS="${LAN_CIDRS:-192.168.0.0/16 172.16.0.0/12}"
 DOCKER_SUBNET="${DOCKER_SUBNET:-172.30.0.0/16}"
 
-LAN_PORTS="${LAN_PORTS:-8080,8181}"
+LAN_PORTS="${LAN_PORTS:-$LAN_PORTS}"
 
 # ============================================================
 # Logging
@@ -235,7 +244,7 @@ start_openvpn() {
         openvpn \
             --cd "$VPN_DIR" \
             --config "$VPN_CONFIG" \
-            --auth-user-pass "$VPN_AUTH" \
+            --auth-user-pass $VPN_AUTH \
             --auth-nocache \
             --script-security 2 \
             --management 127.0.0.1 "$MANAGEMENT_PORT" \
