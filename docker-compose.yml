@@ -1,8 +1,7 @@
 name: vpnloader
 services:
   vpnloader:
-    build:
-      dockerfile: ./Dockerfile
+    image: notresopnding2u/vpn-config-loader:latest
     cap_add:
       - NET_ADMIN
     devices:
@@ -11,10 +10,10 @@ services:
     volumes:
       # The path to the folder with your .ovpn configs.
       - ./conf.d:/app/conf.d
+      - ./conf:/vpn/conf
     environment:
       TZ: ${VPN_TZ}
       VPN_CONFIG_FILE: ${VPN_CONFIG_FILE}
-      VPN_CONFIG_FILE_DIR: ${VPN_CONFIG_FILE_DIR}
       VPN_CONFIG_USERNAME: ${VPN_CONFIG_USERNAME}
       VPN_CONFIG_PASSWORD: ${VPN_CONFIG_PASSWORD}
       WEB_PORT: ${WEB_PORT}
