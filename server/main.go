@@ -37,5 +37,5 @@ func main() {
 	s.LoadConfig("/load", router)
 	s.GetStatus("/status", router)
 
-	router.Run(":8080")
+	router.Run(fmt.Sprintf(":%s", conf.WebPort))
 }
