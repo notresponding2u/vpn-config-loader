@@ -1,524 +1,584 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenVPN Dashboard</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>OpenVPN Dashboard</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet"
+        />
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        <style>
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0b1020;
-            color: #e5e7eb;
-            min-height: 100vh;
-            padding: 40px 20px;
-            background-image:
-                radial-gradient(circle at 10% 0%, #172554 0, transparent 35%),
-                radial-gradient(circle at 90% 100%, #312e81 0, transparent 35%);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
-
-        header {
-            margin-bottom: 35px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 12px;
-        }
-
-        .logo {
-            width: 48px;
-            height: 48px;
-            display: grid;
-            place-items: center;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            font-size: 24px;
-            box-shadow: 0 8px 25px #3b82f644;
-        }
-
-        h1 {
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-
-        header p {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .panel {
-            background: rgba(17, 24, 39, 0.85);
-            border: 1px solid #263249;
-            border-radius: 18px;
-            padding: 25px;
-            margin-bottom: 22px;
-            box-shadow: 0 15px 40px #00000025;
-            backdrop-filter: blur(12px);
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        h2 {
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .subtitle {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 5px;
-        }
-
-        .status-box {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 16px;
-            border-radius: 12px;
-            background: #0b1222;
-            border: 1px solid #263249;
-        }
-
-        .status-dot {
-            width: 11px;
-            height: 11px;
-            background: #64748b;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .status-dot.active {
-            background: #22c55e;
-            box-shadow: 0 0 12px #22c55e99;
-        }
-
-        .status-dot.error {
-            background: #ef4444;
-            box-shadow: 0 0 12px #ef444499;
-        }
-
-        #status {
-            font-size: 13px;
-            color: #cbd5e1;
-            overflow-wrap: anywhere;
-        }
-
-        .status-controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            margin-top: 18px;
-        }
-
-        .refresh-label {
-            font-size: 13px;
-            color: #94a3b8;
-        }
-
-        .switch {
-            position: relative;
-            width: 46px;
-            height: 25px;
-            display: inline-block;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            inset: 0;
-            background: #334155;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: .3s;
-        }
-
-        .slider::before {
-            content: "";
-            position: absolute;
-            height: 19px;
-            width: 19px;
-            left: 3px;
-            bottom: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: .3s;
-        }
-
-        input:checked + .slider {
-            background: #3b82f6;
-        }
-
-        input:checked + .slider::before {
-            transform: translateX(21px);
-        }
-
-        .config-list {
-            display: grid;
-            gap: 12px;
-            list-style: none;
-        }
-
-        .config-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 17px;
-            background: #0b1222;
-            border: 1px solid #263249;
-            border-radius: 12px;
-            transition: .2s;
-        }
-
-        .config-item:hover {
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-        }
-
-        .config-info {
-            display: flex;
-            align-items: center;
-            gap: 13px;
-            min-width: 0;
-        }
-
-        .config-icon {
-            width: 40px;
-            height: 40px;
-            display: grid;
-            place-items: center;
-            background: #172554;
-            border-radius: 10px;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .config-name {
-            font-size: 13px;
-            font-weight: 600;
-            overflow-wrap: anywhere;
-        }
-
-        button {
-            border: none;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: 600;
-            transition: .2s;
-        }
-
-        .load-btn {
-            padding: 10px 17px;
-            border-radius: 9px;
-            color: white;
-            background: linear-gradient(135deg, #3b82f6, #6366f1);
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
-        .load-btn:hover {
-            filter: brightness(1.15);
-            box-shadow: 0 5px 18px #3b82f644;
-        }
-
-        .load-btn:disabled {
-            opacity: .5;
-            cursor: wait;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 35px 15px;
-            color: #64748b;
-            font-size: 13px;
-        }
-
-        .empty-icon {
-            font-size: 32px;
-            margin-bottom: 12px;
-        }
-
-        footer {
-            text-align: center;
-            color: #475569;
-            font-size: 11px;
-            padding: 15px;
-        }
-
-        @media (max-width: 600px) {
             body {
-                padding: 25px 14px;
+                font-family: "Inter", sans-serif;
+                background: #0b1020;
+                color: #e5e7eb;
+                min-height: 100vh;
+                padding: 40px 20px;
+                background-image:
+                    radial-gradient(
+                        circle at 10% 0%,
+                        #172554 0,
+                        transparent 35%
+                    ),
+                    radial-gradient(
+                        circle at 90% 100%,
+                        #312e81 0,
+                        transparent 35%
+                    );
+            }
+
+            .container {
+                max-width: 900px;
+                margin: auto;
+            }
+
+            header {
+                margin-bottom: 35px;
+            }
+
+            .brand {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                margin-bottom: 12px;
+            }
+
+            .logo {
+                width: 48px;
+                height: 48px;
+                display: grid;
+                place-items: center;
+                border-radius: 14px;
+                background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+                font-size: 24px;
+                box-shadow: 0 8px 25px #3b82f644;
             }
 
             h1 {
-                font-size: 23px;
+                font-size: 28px;
+                font-weight: 800;
+                letter-spacing: -1px;
+            }
+
+            header p {
+                color: #94a3b8;
+                font-size: 14px;
+                margin-top: 5px;
             }
 
             .panel {
-                padding: 18px;
+                background: rgba(17, 24, 39, 0.85);
+                border: 1px solid #263249;
+                border-radius: 18px;
+                padding: 25px;
+                margin-bottom: 22px;
+                box-shadow: 0 15px 40px #00000025;
+                backdrop-filter: blur(12px);
+            }
+
+            .panel-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            h2 {
+                font-size: 17px;
+                font-weight: 700;
+            }
+
+            .subtitle {
+                font-size: 12px;
+                color: #64748b;
+                margin-top: 5px;
+            }
+
+            .status-box {
+                display: flex;
+                align-items: center;
+                gap: 14px;
+                padding: 16px;
+                border-radius: 12px;
+                background: #0b1222;
+                border: 1px solid #263249;
+            }
+
+            .status-dot {
+                width: 11px;
+                height: 11px;
+                background: #64748b;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+
+            .status-dot.active {
+                background: #22c55e;
+                box-shadow: 0 0 12px #22c55e99;
+            }
+
+            .status-dot.error {
+                background: #ef4444;
+                box-shadow: 0 0 12px #ef444499;
+            }
+
+            #status {
+                font-size: 13px;
+                color: #cbd5e1;
+                overflow-wrap: anywhere;
+            }
+
+            .status-controls {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                margin-top: 18px;
+            }
+
+            .refresh-label {
+                font-size: 13px;
+                color: #94a3b8;
+            }
+
+            .switch {
+                position: relative;
+                width: 46px;
+                height: 25px;
+                display: inline-block;
+            }
+
+            .switch input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+            }
+
+            .slider {
+                position: absolute;
+                inset: 0;
+                background: #334155;
+                border-radius: 30px;
+                cursor: pointer;
+                transition: 0.3s;
+            }
+
+            .slider::before {
+                content: "";
+                position: absolute;
+                height: 19px;
+                width: 19px;
+                left: 3px;
+                bottom: 3px;
+                background: white;
+                border-radius: 50%;
+                transition: 0.3s;
+            }
+
+            input:checked + .slider {
+                background: #3b82f6;
+            }
+
+            input:checked + .slider::before {
+                transform: translateX(21px);
+            }
+
+            .config-list {
+                display: grid;
+                gap: 12px;
+                list-style: none;
             }
 
             .config-item {
-                padding: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                padding: 17px;
+                background: #0b1222;
+                border: 1px solid #263249;
+                border-radius: 12px;
+                transition: 0.2s;
             }
-        }
-    </style>
-</head>
 
-<body>
-<div class="container">
+            .config-item:hover {
+                border-color: #3b82f6;
+                transform: translateY(-2px);
+            }
 
-    <header>
-        <div class="brand">
-            <div class="logo">🔐</div>
-            <div>
-                <h1>OpenVPN Dashboard</h1>
-                <p>Manage your VPN configurations</p>
-            </div>
+            .config-info {
+                display: flex;
+                align-items: center;
+                gap: 13px;
+                min-width: 0;
+            }
+
+            .config-icon {
+                width: 40px;
+                height: 40px;
+                display: grid;
+                place-items: center;
+                background: #172554;
+                border-radius: 10px;
+                font-size: 18px;
+                flex-shrink: 0;
+            }
+
+            .config-name {
+                font-size: 13px;
+                font-weight: 600;
+                overflow-wrap: anywhere;
+            }
+
+            button {
+                border: none;
+                cursor: pointer;
+                font-family: inherit;
+                font-weight: 600;
+                transition: 0.2s;
+            }
+
+            .load-btn {
+                padding: 10px 17px;
+                border-radius: 9px;
+                color: white;
+                background: linear-gradient(135deg, #3b82f6, #6366f1);
+                font-size: 12px;
+                flex-shrink: 0;
+            }
+
+            .load-btn:hover {
+                filter: brightness(1.15);
+                box-shadow: 0 5px 18px #3b82f644;
+            }
+
+            .load-btn:disabled {
+                opacity: 0.5;
+                cursor: wait;
+            }
+
+            .empty {
+                text-align: center;
+                padding: 35px 15px;
+                color: #64748b;
+                font-size: 13px;
+            }
+
+            .empty-icon {
+                font-size: 32px;
+                margin-bottom: 12px;
+            }
+
+            footer {
+                text-align: center;
+                color: #475569;
+                font-size: 11px;
+                padding: 15px;
+            }
+
+            @media (max-width: 600px) {
+                body {
+                    padding: 25px 14px;
+                }
+
+                h1 {
+                    font-size: 23px;
+                }
+
+                .panel {
+                    padding: 18px;
+                }
+
+                .config-item {
+                    padding: 12px;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            <header>
+                <div class="brand">
+                    <div class="logo">🔐</div>
+                    <div>
+                        <h1>OpenVPN Dashboard</h1>
+                        <p>Manage your VPN configurations</p>
+                    </div>
+                </div>
+            </header>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Connection status</h2>
+                        <p class="subtitle">Live VPN server information</p>
+                    </div>
+                    <span style="font-size: 22px">📡</span>
+                </div>
+
+                <div class="status-box">
+                    <div id="statusDot" class="status-dot"></div>
+                    <p id="status">Loading configurations...</p>
+                </div>
+
+                <div class="status-controls">
+                    <div>
+                        <p class="refresh-label">Automatic status refresh</p>
+                        <p class="subtitle" id="refreshText">
+                            Not refreshing status
+                        </p>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="refreshToggle" />
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>Available configurations</h2>
+                        <p class="subtitle">Select a configuration to load</p>
+                    </div>
+                    <span style="font-size: 22px">📁</span>
+                </div>
+
+                <ul id="configList" class="config-list">
+                    <li class="empty">Loading configurations...</li>
+                </ul>
+            </section>
+
+            <footer>OpenVPN Configuration Manager</footer>
         </div>
-    </header>
 
-    <section class="panel">
-        <div class="panel-header">
-            <div>
-                <h2>Connection status</h2>
-                <p class="subtitle">Live VPN server information</p>
-            </div>
-            <span style="font-size: 22px;">📡</span>
-        </div>
+        <script>
+            const BASE_URL = window.location.origin;
 
-        <div class="status-box">
-            <div id="statusDot" class="status-dot"></div>
-            <p id="status">Loading configurations...</p>
-        </div>
+            let shouldGetStatus = false;
+            let lastLoadedConfig = null;
+            let isLoading = false;
 
-        <div class="status-controls">
-            <div>
-                <p class="refresh-label">Automatic status refresh</p>
-                <p class="subtitle" id="refreshText">Not refreshing status</p>
-            </div>
+            const statusElement = document.getElementById("status");
+            const statusDot = document.getElementById("statusDot");
+            const configList = document.getElementById("configList");
 
-            <label class="switch">
-                <input type="checkbox" id="refreshToggle">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </section>
+            function setStatus(message, type = "normal") {
+                statusElement.textContent = message;
+                statusDot.className = "status-dot";
 
-    <section class="panel">
-        <div class="panel-header">
-            <div>
-                <h2>Available configurations</h2>
-                <p class="subtitle">Select a configuration to load</p>
-            </div>
-            <span style="font-size: 22px;">📁</span>
-        </div>
-
-        <ul id="configList" class="config-list">
-            <li class="empty">Loading configurations...</li>
-        </ul>
-    </section>
-
-    <footer>
-        OpenVPN Configuration Manager
-    </footer>
-
-</div>
-
-<script>
-    const BASE_URL = window.location.origin;
-
-    let shouldGetStatus = false;
-
-    const statusElement = document.getElementById("status");
-    const statusDot = document.getElementById("statusDot");
-    const configList = document.getElementById("configList");
-
-    function setStatus(message, type = "normal") {
-        statusElement.textContent = message;
-        statusDot.className = "status-dot";
-
-        if (type === "success") {
-            statusDot.classList.add("active");
-        } else if (type === "error") {
-            statusDot.classList.add("error");
-        }
-    }
-
-    document.getElementById("refreshToggle").addEventListener("change", (event) => {
-        shouldGetStatus = event.target.checked;
-
-        document.getElementById("refreshText").textContent =
-            shouldGetStatus
-                ? "Refreshing status every second"
-                : "Not refreshing status";
-    });
-
-    async function request(url, options = {}) {
-        const res = await fetch(`${BASE_URL}${url}`, options);
-
-        if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-        }
-
-        const contentType = res.headers.get("content-type") || "";
-
-        return contentType.includes("application/json")
-            ? res.json()
-            : res.text();
-    }
-
-    async function getConfigs() {
-        return request("/configs", {
-            headers: { Accept: "application/json" }
-        });
-    }
-
-    async function loadConfig(config) {
-        return request("/load", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded"
-            },
-            body: new URLSearchParams({ config }).toString()
-        });
-    }
-
-    async function getStatus() {
-        return request("/status", {
-            headers: { Accept: "application/json" }
-        });
-    }
-
-    async function retrieveStatus() {
-        while (true) {
-            if (shouldGetStatus) {
-                try {
-                    const stat = await getStatus();
-                    setStatus(
-                        typeof stat === "string"
-                            ? stat
-                            : JSON.stringify(stat),
-                        "success"
-                    );
-                } catch (error) {
-                    setStatus(error.message, "error");
+                if (type === "success") {
+                    statusDot.classList.add("active");
+                } else if (type === "error") {
+                    statusDot.classList.add("error");
                 }
             }
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-    }
+            document
+                .getElementById("refreshToggle")
+                .addEventListener("change", (event) => {
+                    shouldGetStatus = event.target.checked;
 
-    async function loadConfigs() {
-        try {
-            const configs = await getConfigs();
+                    document.getElementById("refreshText").textContent =
+                        shouldGetStatus
+                            ? "Refreshing status every second"
+                            : "Not refreshing status";
+                });
 
-            const items = Array.isArray(configs)
-                ? configs
-                : configs.configs || [];
+            async function request(url, options = {}) {
+                const res = await fetch(`${BASE_URL}${url}`, options);
 
-            configList.innerHTML = "";
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                }
 
-            if (!items.length) {
-                configList.innerHTML = `
-                    <li class="empty">
-                        <div class="empty-icon">📂</div>
-                        No configurations found.
-                    </li>`;
-                setStatus("No configurations found.");
-                return;
+                const contentType = res.headers.get("content-type") || "";
+
+                return contentType.includes("application/json")
+                    ? res.json()
+                    : res.text();
             }
 
-            items.forEach(config => {
-                const li = document.createElement("li");
-                li.className = "config-item";
+            async function getConfigs() {
+                return request("/configs", {
+                    headers: { Accept: "application/json" },
+                });
+            }
 
-                const info = document.createElement("div");
-                info.className = "config-info";
+            async function loadConfig(config) {
+                return request("/load", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    },
+                    body: new URLSearchParams({ config }).toString(),
+                });
+            }
 
-                const icon = document.createElement("div");
-                icon.className = "config-icon";
-                icon.textContent = "📄";
+            async function getStatus() {
+                return request("/status", {
+                    headers: { Accept: "application/json" },
+                });
+            }
 
-                const name = document.createElement("div");
-                name.className = "config-name";
-                name.textContent = config;
+            async function retrieveStatus() {
+                while (true) {
+                    if (shouldGetStatus) {
+                        try {
+                            const stat = await getStatus();
 
-                const button = document.createElement("button");
-                button.className = "load-btn";
-                button.textContent = "Load";
-
-                button.onclick = async () => {
-                    button.disabled = true;
-                    button.textContent = "Loading...";
-
-                    try {
-                        await loadConfig(config);
-                        setStatus(`${config} loaded successfully.`, "success");
-                        button.textContent = "Loaded ✓";
-                    } catch (error) {
-                        setStatus(error.message, "error");
-                        button.textContent = "Retry";
-                    } finally {
-                        button.disabled = false;
+                            setStatus(
+                                typeof stat === "string"
+                                    ? stat
+                                    : JSON.stringify(stat),
+                                "success"
+                            );
+                        } catch (error) {
+                            setStatus(error.message, "error");
+                        }
                     }
-                };
 
-                info.append(icon, name);
-                li.append(info, button);
-                configList.appendChild(li);
-            });
+                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                }
+            }
 
-            setStatus(`${items.length} configurations available.`);
-        } catch (error) {
-            configList.innerHTML = `
+            async function loadConfigs() {
+                try {
+                    const configs = await getConfigs();
+
+                    const items = Array.isArray(configs)
+                        ? configs
+                        : configs.configs || [];
+
+                    configList.innerHTML = "";
+
+                    if (!items.length) {
+                        configList.innerHTML = `
                 <li class="empty">
-                    <div class="empty-icon">⚠️</div>
-                    Failed to load configurations.
+                    <div class="empty-icon">📂</div>
+                    No configurations found.
                 </li>`;
-            setStatus(error.message, "error");
-            console.error(error);
-        }
-    }
 
-    loadConfigs();
-    retrieveStatus();
-</script>
+                        setStatus("No configurations found.");
+                        return;
+                    }
 
-</body>
+                    items.forEach((config) => {
+                        const li = document.createElement("li");
+                        li.className = "config-item";
+
+                        const info = document.createElement("div");
+                        info.className = "config-info";
+
+                        const icon = document.createElement("div");
+                        icon.className = "config-icon";
+                        icon.textContent = "📄";
+
+                        const name = document.createElement("div");
+                        name.className = "config-name";
+                        name.textContent = config;
+
+                        const button = document.createElement("button");
+                        button.className = "load-btn";
+
+                        function updateButton() {
+                            button.textContent =
+                                lastLoadedConfig === config
+                                    ? "Loaded ✓"
+                                    : "Load";
+                        }
+
+                        updateButton();
+
+                        button.onclick = async () => {
+                            if (isLoading) return;
+
+                            isLoading = true;
+
+                            // Disable all buttons during loading.
+                            const buttons =
+                                configList.querySelectorAll(".load-btn");
+
+                            buttons.forEach((btn) => {
+                                btn.disabled = true;
+                            });
+
+                            button.textContent = "Loading...";
+
+                            try {
+                                await loadConfig(config);
+
+                                // Remember only the latest successful config.
+                                lastLoadedConfig = config;
+
+                                // Update every configuration button.
+                                configList
+                                    .querySelectorAll(".load-btn")
+                                    .forEach((btn) => {
+                                        const configName = btn.dataset.config;
+
+                                        btn.textContent =
+                                            configName === lastLoadedConfig
+                                                ? "Loaded ✓"
+                                                : "Load";
+                                    });
+
+                                setStatus(
+                                    `${config} loaded successfully.`,
+                                    "success"
+                                );
+                            } catch (error) {
+                                button.textContent =
+                                    lastLoadedConfig === config
+                                        ? "Loaded ✓"
+                                        : "Retry";
+
+                                setStatus(error.message, "error");
+                            } finally {
+                                isLoading = false;
+
+                                buttons.forEach((btn) => {
+                                    btn.disabled = false;
+                                });
+                            }
+                        };
+
+                        button.dataset.config = config;
+
+                        info.append(icon, name);
+                        li.append(info, button);
+                        configList.appendChild(li);
+                    });
+
+                    setStatus(`${items.length} configurations available.`);
+                } catch (error) {
+                    configList.innerHTML = `
+            <li class="empty">
+                <div class="empty-icon">⚠️</div>
+                Failed to load configurations.
+            </li>`;
+
+                    setStatus(error.message, "error");
+                    console.error(error);
+                }
+            }
+
+            loadConfigs();
+            retrieveStatus();
+        </script>
+    </body>
 </html>
-

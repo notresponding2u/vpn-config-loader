@@ -9,15 +9,15 @@ services:
       - /dev/net/tun:/dev/net/tun
     restart: unless-stopped
     volumes:
+      # The path to the folder with your .ovpn configs.
       - ./conf.d:/app/conf.d
-      - ./auth.txt:/vpn/auth.txt:ro
     environment:
       TZ: ${VPN_TZ}
       VPN_CONFIG_FILE: ${VPN_CONFIG_FILE}
       VPN_CONFIG_FILE_DIR: ${VPN_CONFIG_FILE_DIR}
-      VPN_CONFIG_FILES_DIR: ${VPN_CONFIG_FILES_DIR}
-      VPN_CONFIG_MANAGEMENT_PORT: ${VPN_CONFIG_MANAGEMENT_PORT}
-      VPN_CONFIG_AUTH_FILE: ${VPN_CONFIG_AUTH_FILE}
+      VPN_CONFIG_USERNAME: ${VPN_CONFIG_USERNAME}
+      VPN_CONFIG_PASSWORD: ${VPN_CONFIG_PASSWORD}
+      WEB_PORT: ${WEB_PORT}
       LOG_LEVEL: ${LOG_LEVEL}
 
       # LAN networks allowed for established replies
@@ -25,12 +25,9 @@ services:
 
       # Docker network
       DOCKER_SUBNET: "172.30.0.0/16"
-
-      # All LAN-accessible application ports
-      LAN_PORTS: "8080,8181"
     ports:
-      - 8080:8080
-      - 8181:8181
+      - ${WEB_PORT}:${WEB_PORT}
+      # Other ports go ehre:
     networks:
       - vpn-net
     deploy:
