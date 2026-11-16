@@ -9,9 +9,6 @@ import (
 type Config struct {
 	OpenVPNAttributeManagementIP   string
 	OpenVPNAttributeManagementPort string
-	OpenVPNConfigFile              string
-	OpenVPNConfigFilesDir          string
-	OpenVPNConfigFileDir           string
 	WebPort                        string
 	LogLevel                       slog.Level
 }
@@ -20,13 +17,6 @@ func New() (*Config, error) {
 	c := &Config{
 		OpenVPNAttributeManagementIP:   "127.0.0.1",
 		OpenVPNAttributeManagementPort: "6061",
-		OpenVPNConfigFilesDir:          "/app/conf.d",
-		OpenVPNConfigFile:              "/vpn/conf",
-	}
-
-	c.OpenVPNConfigFile = os.Getenv("VPN_CONFIG_FILE")
-	if c.OpenVPNConfigFile == "" {
-		return nil, errors.New("VPN_CONFIG_FILE env not set")
 	}
 
 	c.WebPort = os.Getenv("WEB_PORT")

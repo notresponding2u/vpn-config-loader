@@ -41,7 +41,7 @@ RUN chmod 755 \
 
 WORKDIR /vpn
 
-VOLUME ["/app/conf.d", "/vpn/conf"]
+VOLUME ["/app/conf.d"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 

@@ -10,7 +10,6 @@ services:
     volumes:
       # The path to the folder with your .ovpn configs.
       - ./conf.d:/app/conf.d
-      - ./conf:/vpn/conf
     environment:
       TZ: ${VPN_TZ}
       VPN_CONFIG_FILE: ${VPN_CONFIG_FILE}

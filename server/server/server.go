@@ -11,6 +11,11 @@ import (
 	"github.com/notresponding2u/vpn-config-loader/server/manager"
 )
 
+const (
+	OpenVPNConfigFilesDir = "/app/conf.d"
+	OpenVPNConfigFileDir = "/vpn/conf"
+)
+
 type server struct {
 	Conf       *config.Config
 	vpnManager *manager.Manager
@@ -27,7 +32,7 @@ func NewServer(conf *config.Config, logger *slog.Logger, vpnManager *manager.Man
 
 func (s *server) ListConfigs(endpoint string, engine *gin.Engine) {
 	engine.GET(endpoint, func(c *gin.Context) {
-		r, err := os.ReadDir(s.Conf.OpenVPNConfigFilesDir)
+		r, err := os.ReadDir(OpenVPNConfigFilesDir)
 		if err != nil {
 			s.logger.Error("can't read directory", "err", err.Error())
 			c.Status(http.StatusBadRequest)
@@ -47,7 +52,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 	engine.POST(endpoint, func(c *gin.Context) {
 		conf := c.PostForm("config")
 
-		file := fmt.Sprintf("%s/%s", s.Conf.OpenVPNConfigFilesDir, conf)
+		file := fmt.Sprintf("%s/%s", OpenVPNConfigFilesDir, conf)
 		dat, err := os.ReadFile(file)
 		if err != nil {
 			c.String(http.StatusNotFound, "config not found")
@@ -56,14 +61,14 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 			return
 		}
 
-		_, err = os.Stat(s.Conf.OpenVPNConfigFileDir)
+		_, err = os.Stat(OpenVPNConfigFileDir)
 
 		if os.IsNotExist(err) {
-			os.Mkdir(s.Conf.OpenVPNConfigFileDir, 0600)
+			os.Mkdir(OpenVPNConfigFileDir, 0600)
 		}
 
 		err = os.WriteFile(
-			fmt.Sprintf("%s/%s", s.Conf.OpenVPNConfigFileDir, s.Conf.OpenVPNConfigFile),
+			"/vpn/conf/config.ovpn",
 			dat,
 			0644,
 		)
@@ -75,7 +80,7 @@ func (s *server) LoadConfig(endpoint string, engine *gin.Engine) {
 			return
 		}
 
-		s.logger.Debug("file loaded", "dir", s.Conf.OpenVPNConfigFileDir, "file", s.Conf.OpenVPNConfigFile)
+		s.logger.Debug("file loaded")
 
 		if err = s.vpnManager.RestartVpn(); err != nil {
 			s.logger.Error("can't load config", "err", err.Error())

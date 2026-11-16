@@ -1,5 +1,9 @@
 #!/bin/sh
 
+[[ -f "/app/conf.d/${VPN_CONFIG_FILE}" ]] || { echo "File does not exist: /app/conf.d/${VPN_CONFIG_FILE}" >&2; exit 1; }
+
+cp /app/conf.d/${VPN_CONFIG_FILE} /vpn/conf/config.ovpn
+
 set -eu
 
 echo "[entrypoint] Installing firewall"
