@@ -43,7 +43,5 @@ WORKDIR /vpn
 
 VOLUME ["/app/conf.d"]
 
-EXPOSE 8080 8181 8989 7878 9696
-
 ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 
