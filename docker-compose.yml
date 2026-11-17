@@ -12,14 +12,24 @@ services:
       - ./conf.d:/app/conf.d
     environment:
       TZ: ${VPN_TZ}
+
+      # Initial config .ovpn to be loaded and the credentials for the vpn.
       VPN_CONFIG_FILE: ${VPN_CONFIG_FILE}
       VPN_CONFIG_USERNAME: ${VPN_CONFIG_USERNAME}
       VPN_CONFIG_PASSWORD: ${VPN_CONFIG_PASSWORD}
+
+      # All the ports you want to be accessible for all the Applications 
+      # comma separated. 
+      FIREWALL_ALLOWED_PORTS: ${WEB_PORT}
+
+      # The port where the application of the vpn-config-loader-will be allowed.
       WEB_PORT: ${WEB_PORT}
+
+      # Log level
       LOG_LEVEL: ${LOG_LEVEL}
 
-      # LAN networks allowed for established replies
-      LAN_CIDRS: "192.168.0.0/16 172.16.0.0/12"
+      # LAN networks allowed for established replies.
+      LAN_CIDRS: "192.168.1.0/24"
 
       # Docker network
       DOCKER_SUBNET: "172.30.0.0/16"
