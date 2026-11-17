@@ -12,6 +12,7 @@ In your `.env` file:
 - `VPN_CONFIG_PASSWORD` - your VPN password.
 - `LOG_LEVEL` - the log levelyou wnat the web server to report. Valid are `DEBUG`, `ERROR`, `INFO` and `WARNING`. Equivalent to slog.
 - `WEB_PORT` - the port you want to access the vpn loader application.
+- `FIREWALL_ALLOWED_PORTS` - Comma separated ports, for the application of the stack that you want accessible. The other services' ports.
 
 **Replace the `wait` service in `docker-compose.yml` file, with the service you want to be routed through the vpn. Do not forget to set `network_mode` and `depends_on`.**
 
