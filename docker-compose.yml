@@ -20,7 +20,7 @@ services:
 
       # All the ports you want to be accessible for all the Applications 
       # comma separated. 
-      FIREWALL_ALLOWED_PORTS: ${WEB_PORT}
+      FIREWALL_ALLOWED_PORTS: ""
 
       # The port where the application of the vpn-config-loader-will be allowed.
       WEB_PORT: ${WEB_PORT}
