@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -76,7 +77,7 @@ func (m *Manager) connectManagement() (*openvpn.MgmtClient, error) {
 	return client, nil
 }
 
-func (m *Manager) Status() (*string, error) {
+func (m *Manager) State() (*string, error) {
 	m.logger.Debug("getting status")
 
 	client, err := m.connectManagement()
@@ -89,7 +90,7 @@ func (m *Manager) Status() (*string, error) {
 
 	s := ""
 	go func() {
-		// Retrieve status.
+		// Retrieve sate.
 		state, err := client.LatestState()
 		if err != nil {
 			err = fmt.Errorf("error retreiving status: %s", err.Error())
@@ -110,4 +111,54 @@ func (m *Manager) Status() (*string, error) {
 	}
 
 	return &s, err
+}
+
+func (m *Manager) Status() (*string, error) {
+	m.logger.Debug("getting status")
+
+	client, err := m.connectManagement()
+	if err != nil {
+		return nil, fmt.Errorf("can't connect to management: %s", err)
+	}
+	defer client.Close()
+
+	done := make(chan error, 1)
+
+	var s [][]byte
+	go func() {
+		// Retrieve status.
+		status, err := client.LatestStatus(openvpn.StatusFormatDefault)
+		if err != nil {
+			err = fmt.Errorf("error retreiving status: %s", err.Error())
+			return
+		}
+
+		s = status
+
+		done <- nil
+	}()
+
+	select {
+	case err := <-done:
+		m.logger.Debug("getting status completed", "err", err)
+	case <-time.After(10 * time.Second):
+		m.logger.Debug("getting status is blocked after 10 seconds")
+		return nil, errors.New("gettint status timed out")
+
+	}
+
+	stringifiedOutput := []string{}
+	for i := range s {
+		stringifiedOutput = append(stringifiedOutput, string(s[i]))
+	}
+
+	marshaledOutput, err := json.Marshal(stringifiedOutput)
+	if err != nil {
+		m.logger.Error("error marshaling", "err", err)
+		return nil, fmt.Errorf("error marshaling output: %s", err.Error())
+	}
+
+	output := string(marshaledOutput)
+
+	return &output, err
 }

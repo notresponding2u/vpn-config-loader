@@ -106,39 +106,62 @@
                 margin-top: 5px;
             }
 
+            /* Connection state */
+
             .status-box {
                 display: flex;
                 align-items: center;
                 gap: 14px;
-                padding: 16px;
+                padding: 18px;
                 border-radius: 12px;
                 background: #0b1222;
                 border: 1px solid #263249;
             }
 
             .status-dot {
-                width: 11px;
-                height: 11px;
+                width: 12px;
+                height: 12px;
                 background: #64748b;
                 border-radius: 50%;
                 flex-shrink: 0;
             }
 
-            .status-dot.active {
+            .status-dot.connected {
                 background: #22c55e;
                 box-shadow: 0 0 12px #22c55e99;
             }
 
-            .status-dot.error {
+            .status-dot.connecting {
+                background: #eab308;
+                box-shadow: 0 0 12px #eab30899;
+            }
+
+            .status-dot.disconnected {
                 background: #ef4444;
                 box-shadow: 0 0 12px #ef444499;
             }
 
-            #status {
-                font-size: 13px;
-                color: #cbd5e1;
+            .status-dot.unknown {
+                background: #64748b;
+            }
+
+            .state-info {
+                min-width: 0;
+            }
+
+            #state {
+                font-size: 15px;
+                font-weight: 700;
                 overflow-wrap: anywhere;
             }
+
+            #stateDescription {
+                font-size: 12px;
+                color: #94a3b8;
+                margin-top: 4px;
+            }
+
+            /* Automatic refresh */
 
             .status-controls {
                 display: flex;
@@ -146,6 +169,43 @@
                 justify-content: space-between;
                 gap: 15px;
                 margin-top: 18px;
+            }
+
+            .refresh-options {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            #refreshInterval {
+                background: #0b1222;
+                color: #e5e7eb;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 8px 10px;
+                font-family: inherit;
+                font-size: 12px;
+                cursor: pointer;
+                outline: none;
+            }
+
+            #refreshInterval:focus {
+                border-color: #3b82f6;
+            }
+
+            #refreshInterval option {
+                background: #0b1222;
+                color: #e5e7eb;
+            }
+
+            @media (max-width: 450px) {
+                .refresh-options {
+                    gap: 8px;
+                }
+
+                #refreshInterval {
+                    max-width: 125px;
+                }
             }
 
             .refresh-label {
@@ -194,6 +254,101 @@
             input:checked + .slider::before {
                 transform: translateX(21px);
             }
+
+            /* OpenVPN detailed status */
+
+            .terminal {
+                background: #080d19;
+                border: 1px solid #263249;
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            .terminal-header {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                padding: 12px 15px;
+                background: #111827;
+                border-bottom: 1px solid #263249;
+            }
+
+            .terminal-dot {
+                width: 9px;
+                height: 9px;
+                border-radius: 50%;
+            }
+
+            .terminal-dot.red {
+                background: #ef4444;
+            }
+            .terminal-dot.yellow {
+                background: #eab308;
+            }
+            .terminal-dot.green {
+                background: #22c55e;
+            }
+
+            .terminal-title {
+                margin-left: 7px;
+                font-size: 11px;
+                color: #94a3b8;
+            }
+
+            .terminal-content {
+                padding: 18px;
+                min-height: 100px;
+                max-height: 450px;
+                overflow-y: auto;
+            }
+
+            .terminal-heading {
+                color: #60a5fa;
+                font-size: 13px;
+                font-weight: 700;
+                margin-bottom: 10px;
+            }
+
+            .terminal-updated {
+                color: #64748b;
+                font-size: 11px;
+                margin-bottom: 14px;
+            }
+
+            .stat-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 15px;
+                padding: 8px 0;
+                border-bottom: 1px solid #1e293b;
+                font-family: Consolas, monospace;
+                font-size: 12px;
+            }
+
+            .stat-row:last-child {
+                border-bottom: none;
+            }
+
+            .stat-label {
+                color: #94a3b8;
+                overflow-wrap: anywhere;
+            }
+
+            .stat-value {
+                color: #a5f3fc;
+                font-weight: 600;
+                text-align: right;
+                overflow-wrap: anywhere;
+            }
+
+            .status-empty {
+                color: #64748b;
+                font-size: 12px;
+                font-family: Consolas, monospace;
+            }
+
+            /* Configuration list */
 
             .config-list {
                 display: grid;
@@ -304,6 +459,10 @@
                 .config-item {
                     padding: 12px;
                 }
+
+                .stat-row {
+                    gap: 10px;
+                }
             }
         </style>
     </head>
@@ -323,17 +482,19 @@
             <section class="panel">
                 <div class="panel-header">
                     <div>
-                        <h2>Connection status</h2>
-                        <p class="subtitle">Live VPN server information</p>
+                        <h2>Connection state</h2>
+                        <p class="subtitle">Current VPN connection state</p>
                     </div>
                     <span style="font-size: 22px">📡</span>
                 </div>
 
                 <div class="status-box">
-                    <div id="statusDot" class="status-dot"></div>
-                    <p id="status">Loading configurations...</p>
+                    <div id="stateDot" class="status-dot unknown"></div>
+                    <div class="state-info">
+                        <p id="state">Loading state...</p>
+                        <p id="stateDescription">Waiting for VPN information</p>
+                    </div>
                 </div>
-
                 <div class="status-controls">
                     <div>
                         <p class="refresh-label">Automatic status refresh</p>
@@ -342,10 +503,49 @@
                         </p>
                     </div>
 
-                    <label class="switch">
-                        <input type="checkbox" id="refreshToggle" />
-                        <span class="slider"></span>
-                    </label>
+                    <div class="refresh-options">
+                        <select id="refreshInterval">
+                            <option value="1000">1 second</option>
+                            <option value="5000">5 seconds</option>
+                            <option value="30000">30 seconds</option>
+                            <option value="60000">1 minute</option>
+                            <option value="300000">5 minutes</option>
+                            <option value="900000">15 minutes</option>
+                            <option value="1800000">30 minutes</option>
+                        </select>
+
+                        <label class="switch">
+                            <input type="checkbox" id="refreshToggle" />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <div>
+                        <h2>OpenVPN status</h2>
+                        <p class="subtitle">
+                            Detailed information from OpenVPN
+                        </p>
+                    </div>
+                    <span style="font-size: 22px">📋</span>
+                </div>
+
+                <div class="terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">openvpn-status</span>
+                    </div>
+
+                    <div id="status" class="terminal-content">
+                        <p class="status-empty">
+                            Waiting for status information...
+                        </p>
+                    </div>
                 </div>
             </section>
 
@@ -372,89 +572,299 @@
             let shouldGetStatus = false;
             let lastLoadedConfig = null;
             let isLoading = false;
+            let refreshRunning = false;
+            let refreshInterval = 1000;
 
+            const stateElement = document.getElementById("state");
+            const stateDescription =
+                document.getElementById("stateDescription");
+            const stateDot = document.getElementById("stateDot");
             const statusElement = document.getElementById("status");
-            const statusDot = document.getElementById("statusDot");
             const configList = document.getElementById("configList");
 
-            function setStatus(message, type = "normal") {
-                statusElement.textContent = message;
-                statusDot.className = "status-dot";
+            const refreshToggle = document.getElementById("refreshToggle");
+            const refreshIntervalSelect =
+                document.getElementById("refreshInterval");
+            const refreshText = document.getElementById("refreshText");
 
-                if (type === "success") {
-                    statusDot.classList.add("active");
-                } else if (type === "error") {
-                    statusDot.classList.add("error");
+            // -----------------------------
+            // Connection state
+            // -----------------------------
+
+            function setState(value) {
+                const state = String(value ?? "")
+                    .trim()
+                    .replace(/:$/, "");
+
+                const normalized = state.toUpperCase();
+
+                stateElement.textContent = state || "UNKNOWN";
+                stateDot.className = "status-dot";
+
+                if (normalized === "CONNECTED") {
+                    stateDot.classList.add("connected");
+                    stateDescription.textContent =
+                        "VPN connection is established.";
+                } else if (
+                    [
+                        "WAIT",
+                        "CONNECTING",
+                        "RECONNECTING",
+                        "RESOLVE",
+                        "TCP_CONNECT",
+                        "AUTH",
+                    ].includes(normalized)
+                ) {
+                    stateDot.classList.add("connecting");
+                    stateDescription.textContent =
+                        "VPN is establishing a connection.";
+                } else if (
+                    ["DISCONNECTED", "EXITING", "FAILED"].includes(normalized)
+                ) {
+                    stateDot.classList.add("disconnected");
+                    stateDescription.textContent = "VPN is not connected.";
+                } else {
+                    stateDot.classList.add("unknown");
+                    stateDescription.textContent = "VPN state information.";
                 }
             }
 
-            document
-                .getElementById("refreshToggle")
-                .addEventListener("change", (event) => {
-                    shouldGetStatus = event.target.checked;
+            function setStateError(error) {
+                stateElement.textContent = "Unable to retrieve state";
+                stateDescription.textContent = error.message;
+                stateDot.className = "status-dot disconnected";
+            }
 
-                    document.getElementById("refreshText").textContent =
-                        shouldGetStatus
-                            ? "Refreshing status every second"
-                            : "Not refreshing status";
+            // -----------------------------
+            // Detailed OpenVPN status
+            // -----------------------------
+
+            function setStatus(data) {
+                statusElement.replaceChildren();
+
+                const lines = Array.isArray(data)
+                    ? data.map(String)
+                    : [String(data ?? "")];
+
+                if (!lines.length || !lines.some((line) => line.trim())) {
+                    const empty = document.createElement("p");
+                    empty.className = "status-empty";
+                    empty.textContent = "No status information available.";
+                    statusElement.appendChild(empty);
+                    return;
+                }
+
+                lines.forEach((line, index) => {
+                    const parts = line.split(",");
+
+                    if (index === 0) {
+                        const heading = document.createElement("div");
+                        heading.className = "terminal-heading";
+                        heading.textContent = line;
+                        statusElement.appendChild(heading);
+                        return;
+                    }
+
+                    if (parts[0] === "Updated" && parts.length > 1) {
+                        const updated = document.createElement("div");
+                        updated.className = "terminal-updated";
+                        updated.textContent =
+                            "Last updated: " + parts.slice(1).join(",");
+                        statusElement.appendChild(updated);
+                        return;
+                    }
+
+                    const row = document.createElement("div");
+                    row.className = "stat-row";
+
+                    if (parts.length >= 2) {
+                        const label = document.createElement("span");
+                        label.className = "stat-label";
+                        label.textContent = parts[0];
+
+                        const value = document.createElement("span");
+                        value.className = "stat-value";
+                        value.textContent = parts.slice(1).join(",");
+
+                        row.append(label, value);
+                    } else {
+                        const text = document.createElement("span");
+                        text.className = "stat-label";
+                        text.textContent = line;
+                        row.appendChild(text);
+                    }
+
+                    statusElement.appendChild(row);
                 });
+            }
 
-            async function request(url, options = {}) {
-                const res = await fetch(`${BASE_URL}${url}`, options);
+            function setStatusError(error) {
+                statusElement.replaceChildren();
+
+                const message = document.createElement("p");
+                message.className = "status-empty";
+                message.style.color = "#ef4444";
+                message.textContent =
+                    "Failed to retrieve OpenVPN status: " + error.message;
+
+                statusElement.appendChild(message);
+            }
+
+            // -----------------------------
+            // API requests
+            // -----------------------------
+
+            async function getConfigs() {
+                const res = await fetch(`${BASE_URL}/configs`, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
 
                 if (!res.ok) {
                     throw new Error(`HTTP ${res.status}: ${await res.text()}`);
                 }
 
-                const contentType = res.headers.get("content-type") || "";
-
-                return contentType.includes("application/json")
-                    ? res.json()
-                    : res.text();
-            }
-
-            async function getConfigs() {
-                return request("/configs", {
-                    headers: { Accept: "application/json" },
-                });
+                return res.json();
             }
 
             async function loadConfig(config) {
-                return request("/load", {
+                const res = await fetch(`${BASE_URL}/load`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
                     },
                     body: new URLSearchParams({ config }).toString(),
                 });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                }
+
+                return res.text();
             }
 
-            async function getStatus() {
-                return request("/status", {
-                    headers: { Accept: "application/json" },
+            // /state returns plain text, e.g. CONNECTED:
+            async function getState() {
+                const res = await fetch(`${BASE_URL}/state`, {
+                    headers: {
+                        Accept: "text/plain",
+                    },
                 });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                }
+
+                return res.text();
+            }
+
+            // /status returns a JSON array of strings.
+            async function getStatus() {
+                const res = await fetch(`${BASE_URL}/status`, {
+                    headers: {
+                        Accept: "application/json",
+                    },
+                });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                }
+
+                return res.json();
+            }
+
+            // -----------------------------
+            // Refresh both endpoints
+            // -----------------------------
+
+            async function refreshStatus() {
+                const results = await Promise.allSettled([
+                    getState(),
+                    getStatus(),
+                ]);
+
+                if (results[0].status === "fulfilled") {
+                    setState(results[0].value);
+                } else {
+                    setStateError(results[0].reason);
+                }
+
+                if (results[1].status === "fulfilled") {
+                    setStatus(results[1].value);
+                } else {
+                    setStatusError(results[1].reason);
+                }
+            }
+
+            // -----------------------------
+            // Automatic refresh
+            // -----------------------------
+
+            function updateRefreshText() {
+                const seconds = refreshInterval / 1000;
+
+                let label;
+
+                if (seconds < 60) {
+                    label = `${seconds} second${seconds === 1 ? "" : "s"}`;
+                } else {
+                    const minutes = seconds / 60;
+                    label = `${minutes} minute${minutes === 1 ? "" : "s"}`;
+                }
+
+                refreshText.textContent = shouldGetStatus
+                    ? `Refreshing every ${label}`
+                    : "Not refreshing status";
             }
 
             async function retrieveStatus() {
-                while (true) {
-                    if (shouldGetStatus) {
-                        try {
-                            const stat = await getStatus();
+                if (refreshRunning) return;
 
-                            setStatus(
-                                typeof stat === "string"
-                                    ? stat
-                                    : JSON.stringify(stat),
-                                "success"
-                            );
-                        } catch (error) {
-                            setStatus(error.message, "error");
-                        }
+                refreshRunning = true;
+
+                try {
+                    while (shouldGetStatus) {
+                        await refreshStatus();
+
+                        if (!shouldGetStatus) break;
+
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, refreshInterval)
+                        );
                     }
+                } finally {
+                    refreshRunning = false;
 
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
+                    if (shouldGetStatus) {
+                        retrieveStatus();
+                    }
                 }
             }
+
+            // Enable / disable automatic refresh
+            refreshToggle.addEventListener("change", (event) => {
+                shouldGetStatus = event.target.checked;
+
+                updateRefreshText();
+
+                if (shouldGetStatus) {
+                    retrieveStatus();
+                }
+            });
+
+            // Change refresh interval
+            refreshIntervalSelect.addEventListener("change", (event) => {
+                refreshInterval = Number(event.target.value);
+
+                updateRefreshText();
+
+                // The new interval applies to the next refresh cycle.
+            });
+
+            // -----------------------------
+            // Configuration loading
+            // -----------------------------
 
             async function loadConfigs() {
                 try {
@@ -464,16 +874,22 @@
                         ? configs
                         : configs.configs || [];
 
-                    configList.innerHTML = "";
+                    configList.replaceChildren();
 
                     if (!items.length) {
-                        configList.innerHTML = `
-                <li class="empty">
-                    <div class="empty-icon">📂</div>
-                    No configurations found.
-                </li>`;
+                        const empty = document.createElement("li");
+                        empty.className = "empty";
 
-                        setStatus("No configurations found.");
+                        const icon = document.createElement("div");
+                        icon.className = "empty-icon";
+                        icon.textContent = "📂";
+
+                        empty.append(
+                            icon,
+                            document.createTextNode("No configurations found.")
+                        );
+
+                        configList.appendChild(empty);
                         return;
                     }
 
@@ -494,22 +910,16 @@
 
                         const button = document.createElement("button");
                         button.className = "load-btn";
+                        button.dataset.config = config;
 
-                        function updateButton() {
-                            button.textContent =
-                                lastLoadedConfig === config
-                                    ? "Loaded ✓"
-                                    : "Load";
-                        }
-
-                        updateButton();
+                        button.textContent =
+                            lastLoadedConfig === config ? "Loaded ✓" : "Load";
 
                         button.onclick = async () => {
                             if (isLoading) return;
 
                             isLoading = true;
 
-                            // Disable all buttons during loading.
                             const buttons =
                                 configList.querySelectorAll(".load-btn");
 
@@ -522,32 +932,27 @@
                             try {
                                 await loadConfig(config);
 
-                                // Remember only the latest successful config.
                                 lastLoadedConfig = config;
 
-                                // Update every configuration button.
                                 configList
                                     .querySelectorAll(".load-btn")
                                     .forEach((btn) => {
-                                        const configName = btn.dataset.config;
-
                                         btn.textContent =
-                                            configName === lastLoadedConfig
+                                            btn.dataset.config ===
+                                            lastLoadedConfig
                                                 ? "Loaded ✓"
                                                 : "Load";
                                     });
 
-                                setStatus(
-                                    `${config} loaded successfully.`,
-                                    "success"
-                                );
+                                // Update VPN state and detailed status.
+                                await refreshStatus();
                             } catch (error) {
                                 button.textContent =
                                     lastLoadedConfig === config
                                         ? "Loaded ✓"
                                         : "Retry";
 
-                                setStatus(error.message, "error");
+                                console.error(error);
                             } finally {
                                 isLoading = false;
 
@@ -557,28 +962,38 @@
                             }
                         };
 
-                        button.dataset.config = config;
-
                         info.append(icon, name);
                         li.append(info, button);
                         configList.appendChild(li);
                     });
-
-                    setStatus(`${items.length} configurations available.`);
                 } catch (error) {
-                    configList.innerHTML = `
-            <li class="empty">
-                <div class="empty-icon">⚠️</div>
-                Failed to load configurations.
-            </li>`;
+                    configList.replaceChildren();
 
-                    setStatus(error.message, "error");
+                    const empty = document.createElement("li");
+                    empty.className = "empty";
+
+                    const icon = document.createElement("div");
+                    icon.className = "empty-icon";
+                    icon.textContent = "⚠️";
+
+                    empty.append(
+                        icon,
+                        document.createTextNode(
+                            "Failed to load configurations."
+                        )
+                    );
+
+                    configList.appendChild(empty);
                     console.error(error);
                 }
             }
 
+            // -----------------------------
+            // Initial page load
+            // -----------------------------
+
             loadConfigs();
-            retrieveStatus();
+            refreshStatus();
         </script>
     </body>
 </html>

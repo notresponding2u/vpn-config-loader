@@ -36,6 +36,7 @@ func main() {
 	s.ListConfigs("/configs", router)
 	s.LoadConfig("/load", router)
 	s.GetStatus("/status", router)
+	s.GetState("/state", router)
 
 	router.Run(fmt.Sprintf(":%s", conf.WebPort))
 }

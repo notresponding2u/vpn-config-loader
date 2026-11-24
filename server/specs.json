@@ -81,7 +81,25 @@
             "text/plain": {
               "schema": {
                 "type": "string",
-                "example": "Status..."
+                "example": "CONNECTED"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/state": {
+    "get": {
+      "summary": "Gets the current state of OpenVPN service.",
+      "responses": {
+        "200": {
+          "description": "The state of the OpenVPN service.",
+          "content": {
+            "text/plain": {
+              "schema": {
+                "type": "string",
+                "example": "[\"OpenVPN STATISTICS\",\"Updated,2026-11-24 22:42:54\",\"TUN/TAP read bytes,240\",\"TUN/TAP write bytes,0\",\"TCP/UDP read bytes,4658\",\"TCP/UDP write bytes,2803\",\"Auth read bytes,96\",\"pre-compress bytes,0\",\"post-compress bytes,0\",\"pre-decompress bytes,0\",\"post-decompress bytes,0\"]"
               }
             }
           }
