@@ -106,3 +106,17 @@ func (s *server) GetStatus(endpoint string, engine *gin.Engine) {
 
 	})
 }
+
+func (s *server) GetState(endpoint string, engine *gin.Engine) {
+	engine.GET(endpoint, func(c *gin.Context) {
+		s, err := s.vpnManager.State()
+		if err != nil {
+			c.String(http.StatusInternalServerError, "can't get OpenVPN state")
+
+			return
+		}
+
+		c.String(http.StatusOK, *s)
+
+	})
+}
